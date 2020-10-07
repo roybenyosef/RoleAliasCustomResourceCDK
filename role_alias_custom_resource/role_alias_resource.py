@@ -1,3 +1,4 @@
+from custom_resource_lambda_role import CustomResourcesLambdaRole
 from typing import Any, Dict
 
 from aws_cdk import (
@@ -43,19 +44,25 @@ class RoleAliasResource(core.Construct):
         region=Stack.of(self).region
 
         policy = AwsCustomResourcePolicy.from_sdk_calls(resources=[f'arn:aws:iot:{region}:{account_id}:rolealias/{role_alias}'])
-        lambda_role = self.get_provisioning_lambda_role(role_arn)
+        lambda_role_singleton = CustomResourcesLambdaRole(scope)
+        lambda_role_singleton.add_to_policy(actions=["iam:PassRole"], resources=[role_arn])
 
-        AwsCustomResource(scope=self, id=f'{id_}-CustomResource', policy=policy, log_retention=log_retention,
+        # lambda_role = self.get_provisioning_lambda_role(role_arn)
+
+        AwsCustomResource(scope=self, id=f'CustomResource', policy=policy, log_retention=log_retention,
                           on_create=on_create, on_update=on_update, on_delete=on_delete, resource_type='Custom::AWS-IoT-Role-Alias',
-                          role=lambda_role, timeout=timeout)
+                          role=lambda_role_singleton.role, timeout=timeout)
 
-    def get_provisioning_lambda_role(self, role_arn):
+    def get_provisioning_lambda_role(self, role_arn: str):
         role = iam.Role(
             scope=self,
-            id='RoleAliasLambdaRole',
+            id=f'LambdaRole',
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole")],
         )
+        # role.add_to_policy(PolicyStatement(actions=["iam:PassRole"], resources=['*']))
+
+        print(f'adding iam:PassRole to "role_arn"')
         role.add_to_policy(PolicyStatement(actions=["iam:PassRole"], resources=[role_arn]))
         return role
 
