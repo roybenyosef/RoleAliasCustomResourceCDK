@@ -42,23 +42,21 @@ class RoleAliasResource(core.Construct):
         account_id = Stack.of(self).account
         region=Stack.of(self).region
 
-        # TODO - fix
-        # policy = AwsCustomResourcePolicy.from_sdk_calls(resources=AwsCustomResourcePolicy.ANY_RESOURCE)
         policy = AwsCustomResourcePolicy.from_sdk_calls(resources=[f'arn:aws:iot:{region}:{account_id}:rolealias/{role_alias}'])
-        lambda_role = self.get_provisioning_lambda_role()
+        lambda_role = self.get_provisioning_lambda_role(role_arn)
 
         AwsCustomResource(scope=self, id=f'{id_}-CustomResource', policy=policy, log_retention=log_retention,
                           on_create=on_create, on_update=on_update, on_delete=on_delete, resource_type='Custom::AWS-IoT-Role-Alias',
                           role=lambda_role, timeout=timeout)
 
-    def get_provisioning_lambda_role(self):
+    def get_provisioning_lambda_role(self, role_arn):
         role = iam.Role(
             scope=self,
             id='RoleAliasLambdaRole',
             assumed_by=iam.ServicePrincipal('lambda.amazonaws.com'),
             managed_policies=[iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole")],
         )
-        role.add_to_policy(PolicyStatement(actions=["iam:PassRole"], resources=['*']))
+        role.add_to_policy(PolicyStatement(actions=["iam:PassRole"], resources=[role_arn]))
         return role
 
     def get_on_create(self, role_alias: str, role_arn: str, credential_duration_seconds: int):
