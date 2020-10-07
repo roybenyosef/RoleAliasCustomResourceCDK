@@ -1,0 +1,16 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+mypy = "*"
+pytest = "*"
+bandit = "*"
+
+[packages]
+role-alias-custom-resource = {editable = true,file = "file:///Users/royb/dev/role-alias-custom-resource"}
+aws-cdk-custom-resources = "*"
+
+[requires]
+python_version = "3.7"

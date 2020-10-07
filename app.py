@@ -6,6 +6,11 @@ from role_alias_custom_resource.role_alias_custom_resource_stack import RoleAlia
 
 
 app = core.App()
-RoleAliasCustomResourceStack(app, "role-alias-custom-resource")
+
+# env_neo = core.Environment(account="450676674096", region="eu-west-1")
+# env_everest = core.Environment(account="450676674096", region="eu-west-1")
+
+# RoleAliasCustomResourceStack(app, "role-alias-custom-resource-stack", env=env_neo)
+RoleAliasCustomResourceStack(app, "role-alias-custom-resource-stack")
 
 app.synth()
